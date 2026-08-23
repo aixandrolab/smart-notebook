@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026, Alexander Suvorov. All rights reserved. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF9800"
+        android:pathData="M12,16c-2.206,0-4-1.794-4-4V6c0-2.206,1.794-4,4-4s4,1.794,4,4v6C16,14.206,14.206,16,12,16z M18,12v-2h-2v2c0,2.206-1.794,4-4,4s-4-1.794-4-4v-2H6v2c0,3.309,2.469,6.03,5.625,6.484V22h-3v2h8v-2h-3v-3.516C15.531,18.03,18,15.309,18,12z"/>
+</vector>

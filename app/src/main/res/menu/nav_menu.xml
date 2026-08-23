@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026, Alexander Suvorov. All rights reserved. -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_about"
+        android:title="@string/about"
+        android:icon="@android:drawable/ic_menu_info_details"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_help"
+        android:title="@string/help"
+        android:icon="@android:drawable/ic_menu_help"
+        app:showAsAction="never" />
+</menu>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026, Alexander Suvorov. All rights reserved. -->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardBackgroundColor="@color/dark_gray"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/dragHandle"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="@string/drag_amp_drop_icon"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:tint="@color/gray" />
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/orange"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/viewButton"
+            app:layout_constraintStart_toEndOf="@+id/dragHandle"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/counterLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintEnd_toStartOf="@+id/viewButton"
+            app:layout_constraintStart_toEndOf="@+id/dragHandle"
+            app:layout_constraintTop_toBottomOf="@+id/titleText">
+
+            <ImageView
+                android:id="@+id/imageCountIcon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:contentDescription="@string/images"
+                android:src="@android:drawable/ic_menu_gallery"
+                android:layout_marginEnd="4dp"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/imageCountText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/_0"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:layout_marginEnd="12dp" />
+
+            <ImageView
+                android:id="@+id/fileCountIcon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:contentDescription="@string/attachments"
+                android:src="@android:drawable/ic_menu_upload"
+                android:layout_marginEnd="4dp"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/fileCountText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/_0"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/dateText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:textColor="@color/gray"
+            android:textSize="12sp"
+            app:layout_constraintEnd_toStartOf="@+id/viewButton"
+            app:layout_constraintStart_toEndOf="@+id/dragHandle"
+            app:layout_constraintTop_toBottomOf="@+id/counterLayout" />
+
+        <ImageView
+            android:id="@+id/viewButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/view_button_background"
+            android:contentDescription="@string/view_note"
+            android:padding="8dp"
+            android:src="@android:drawable/ic_menu_view"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/white" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>
