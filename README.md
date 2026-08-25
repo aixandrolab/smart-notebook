@@ -24,7 +24,7 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 
 ---
 
-![Smart Notebook](https://github.com/aixandrolab/smart-notebook/blob/master/data/images/main_screen.jpeg)
+![Smart Notebook](https://github.com/aixandrolab/smart-notebook/blob/master/data/images/main_screen.jpg)
 
 ---
 
