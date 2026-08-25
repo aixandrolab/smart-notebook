@@ -1,4 +1,4 @@
-# 📝 Smart Notebook <sup>v1.0.0</sup>
+# 📝 Smart Notebook <sup>v1.0.1</sup>
 
 [![GitHub top language](https://img.shields.io/github/languages/top/aixandrolab/smart-notebook)](https://github.com/aixandrolab/smart-notebook)
 [![GitHub license](https://img.shields.io/github/license/aixandrolab/smart-notebook)](https://github.com/aixandrolab/smart-notebook/blob/master/LICENSE)
@@ -90,6 +90,12 @@ Open note → Tap **Reminder** → Select Date and Time
 - **Android 7.0 (API 24)** or higher
 - **Google Play Services** (for speech recognition)
 - ~10 MB storage
+
+---
+
+## 📥  Download
+
+You can download application on the [Release](https://github.com/aixandrolab/smart-notebook/releases/tag/v1.0.1) page
 
 ---
 

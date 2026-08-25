@@ -36,7 +36,7 @@
     <string name="use_voice_input_for_faster_note_creation">• Use voice input for faster note creation</string>
     <string name="about">About</string>
     <string name="smart_notebook_about">📝 Smart Notebook</string>
-    <string name="app_version">Version 1.0.0</string>
+    <string name="app_version">Version 1.0.1</string>
     <string name="features">✨ Features</string>
     <string name="create_and_manage_notes">• Create and manage notes</string>
     <string name="drag_amp_drop_sorting"><![CDATA[• Drag & Drop sorting]]></string>
@@ -56,7 +56,7 @@
     <string name="storage_location">📂 Storage Location</string>
     <string name="documents_smart_notebook">Documents/smart-notebook/</string>
     <string name="files_notes_json_order_json">Files: notes.json, order.json</string>
-    <string name="_2026_smart_notebook">© 2026 Smart Notebook</string>
+    <string name="_2026_smart_notebook">Copyright © 2026, Alexander Suvorov. All rights reserved.</string>
     <string name="made_with">Made with ❤️</string>
     <string name="logo">Logo</string>
     <string name="smart_notebook_main">Smart Notebook</string>
@@ -89,4 +89,10 @@
     <string name="_0">0</string>
     <string name="view_note">View note</string>
     <string name="delete">Delete</string>
+    <string name="author">👨‍ Author</string>
+    <string name="github">GitHub</string>
+    <string name="github_aixandrolab">Aixandrolab</string>
+    <string name="aixandrolab">Alexander Suvorov</string>
+    <string name="smartlegionlab_site">SmartLegionLab Site</string>
+    <string name="notes_0">Notes: 0</string>
 </resources>

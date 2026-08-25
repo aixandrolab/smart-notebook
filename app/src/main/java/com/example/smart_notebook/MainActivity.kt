@@ -40,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fabAdd: FloatingActionButton
     private lateinit var fabRequestPermission: FloatingActionButton
     private lateinit var navMenu: ImageView
+    private lateinit var notesCounter: TextView
     private lateinit var adapter: NoteAdapter
     private var notes = mutableListOf<Note>()
     private lateinit var prefs: android.content.SharedPreferences
@@ -81,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         fabAdd = findViewById(R.id.fabAdd)
         fabRequestPermission = findViewById(R.id.fabRequestPermission)
         navMenu = findViewById(R.id.navMenu)
+        notesCounter = findViewById(R.id.notesCounter)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = NoteAdapter(
@@ -95,6 +97,7 @@ class MainActivity : AppCompatActivity() {
                 StorageHelper.reorderNotes(this, fromPosition, toPosition)
                 val item = notes.removeAt(fromPosition)
                 notes.add(toPosition, item)
+                updateNotesCounter()
             },
             onItemDismiss = { position ->
                 val note = notes[position]
@@ -102,6 +105,7 @@ class MainActivity : AppCompatActivity() {
                 notes.removeAt(position)
                 adapter.notifyItemRemoved(position)
                 checkEmptyState()
+                updateNotesCounter()
             }
         )
         recyclerView.adapter = adapter
@@ -166,6 +170,7 @@ class MainActivity : AppCompatActivity() {
                         notes.removeAt(position)
                         adapter.notifyItemRemoved(position)
                         checkEmptyState()
+                        updateNotesCounter()
                         showToast("Note deleted")
                     }
                     .setNegativeButton("Cancel") { dialog, _ ->
@@ -334,6 +339,7 @@ class MainActivity : AppCompatActivity() {
 
             adapter.updateNotes(notes)
             checkEmptyState()
+            updateNotesCounter()
         } catch (e: Exception) {
             showToast("Error loading notes: ${e.message}")
         }
@@ -349,6 +355,11 @@ class MainActivity : AppCompatActivity() {
             emptyTextView.visibility = View.GONE
             recyclerView.visibility = View.VISIBLE
         }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun updateNotesCounter() {
+        notesCounter.text = "Notes: ${notes.size}"
     }
 
     private fun showAddNoteDialog() {
