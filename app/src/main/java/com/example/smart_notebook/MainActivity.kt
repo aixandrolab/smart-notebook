@@ -363,65 +363,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAddNoteDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_add_note, null)
-        val editTitle = dialogView.findViewById<TextInputEditText>(R.id.editTitle)
-        val editContent = dialogView.findViewById<TextInputEditText>(R.id.editContent)
-        val btnSave = dialogView.findViewById<android.widget.Button>(R.id.btnSave)
-
-        val titleLayout = editTitle.parent.parent as TextInputLayout
-        val contentLayout = editContent.parent.parent as TextInputLayout
-
-        titleLayout.setEndIconOnClickListener {
-            pendingEditText = editTitle
-            checkAudioPermissionAndStartSpeech()
-        }
-
-        contentLayout.setEndIconOnClickListener {
-            pendingEditText = editContent
-            checkAudioPermissionAndStartSpeech()
-        }
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .setCancelable(true)
-            .create()
-
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-        btnSave.setOnClickListener {
-            val title = editTitle.text.toString().trim()
-            val content = editContent.text.toString().trim()
-
-            if (title.isEmpty() || content.isEmpty()) {
-                showToast("Please fill all fields")
-                return@setOnClickListener
-            }
-
-            try {
-                val note = Note(
-                    title = title,
-                    content = content,
-                    imagePaths = emptyList(),
-                    filePaths = emptyList()
-                )
-                StorageHelper.addNote(this, note)
-                loadNotes()
-                dialog.dismiss()
-                showToast("Note added successfully")
-            } catch (e: Exception) {
-                showToast("Error adding note: ${e.message}")
-            }
-        }
-
-        dialog.show()
-    }
-
-    private fun checkAudioPermissionAndStartSpeech() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), REQUEST_AUDIO_PERMISSION)
-            return
-        }
-        startSpeechRecognition()
+        val intent = Intent(this, NoteEditorActivity::class.java)
+        intent.putExtra(NoteEditorActivity.EXTRA_NOTE_TITLE, "Untitled")
+        startActivity(intent)
     }
 
     private fun startSpeechRecognition() {

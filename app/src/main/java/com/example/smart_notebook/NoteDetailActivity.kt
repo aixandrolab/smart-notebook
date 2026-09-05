@@ -40,7 +40,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
+import io.noties.markwon.Markwon
+import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
+import io.noties.markwon.ext.tasklist.TaskListPlugin
+import io.noties.markwon.ext.tables.TablePlugin
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -57,23 +60,23 @@ class NoteDetailActivity : AppCompatActivity() {
     private lateinit var imageSectionTitle: TextView
     private lateinit var fileRecyclerView: RecyclerView
     private lateinit var fileSectionTitle: TextView
+    private lateinit var linkRecyclerView: RecyclerView
+    private lateinit var linkSectionTitle: TextView
     private lateinit var btnEdit: Button
     private lateinit var btnAttachment: Button
     private lateinit var btnReminder: Button
     private lateinit var btnDelete: Button
     private lateinit var permissionWarning: TextView
 
-    private lateinit var linkRecyclerView: RecyclerView
-    private lateinit var linkSectionTitle: TextView
-    private var linkAdapter: LinkAdapter? = null
-
     private var noteId: String = ""
     private var currentNote: Note? = null
     private var imageAdapter: ImageAdapter? = null
     private var fileAdapter: FileAdapter? = null
+    private var linkAdapter: LinkAdapter? = null
     private var isInitialized = false
     private var currentPhotoPath: String? = null
     private var pendingEditText: TextInputEditText? = null
+    private lateinit var markwon: Markwon
 
     companion object {
         private const val REQUEST_IMAGE_CAPTURE = 1
@@ -98,9 +101,18 @@ class NoteDetailActivity : AppCompatActivity() {
             insets
         }
 
+        initMarkwon()
         noteId = intent.getStringExtra("note_id") ?: ""
         initViews()
         checkAllPermissions()
+    }
+
+    private fun initMarkwon() {
+        markwon = Markwon.builder(this)
+            .usePlugin(StrikethroughPlugin.create())
+            .usePlugin(TaskListPlugin.create(this))
+            .usePlugin(TablePlugin.create(this))
+            .build()
     }
 
     private fun initViews() {
@@ -112,14 +124,13 @@ class NoteDetailActivity : AppCompatActivity() {
         imageSectionTitle = findViewById(R.id.imageSectionTitle)
         fileRecyclerView = findViewById(R.id.fileRecyclerView)
         fileSectionTitle = findViewById(R.id.fileSectionTitle)
+        linkRecyclerView = findViewById(R.id.linkRecyclerView)
+        linkSectionTitle = findViewById(R.id.linkSectionTitle)
         btnEdit = findViewById(R.id.btnEdit)
         btnAttachment = findViewById(R.id.btnAttachment)
         btnReminder = findViewById(R.id.btnReminder)
         btnDelete = findViewById(R.id.btnDelete)
         permissionWarning = findViewById(R.id.permissionWarning)
-
-        linkRecyclerView = findViewById(R.id.linkRecyclerView)
-        linkSectionTitle = findViewById(R.id.linkSectionTitle)
 
         backButton.setOnClickListener {
             finish()
@@ -127,7 +138,7 @@ class NoteDetailActivity : AppCompatActivity() {
 
         btnEdit.setOnClickListener {
             if (hasStoragePermission()) {
-                showEditDialog()
+                openNoteEditor()
             } else {
                 showToast("Storage permission required")
                 checkStoragePermission()
@@ -159,6 +170,18 @@ class NoteDetailActivity : AppCompatActivity() {
         imageRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         fileRecyclerView.layoutManager = LinearLayoutManager(this)
         linkRecyclerView.layoutManager = LinearLayoutManager(this)
+    }
+
+    private fun openNoteEditor() {
+        currentNote?.let { note ->
+            val intent = Intent(this, NoteEditorActivity::class.java)
+            intent.putExtra(NoteEditorActivity.EXTRA_NOTE_ID, note.id)
+            intent.putExtra(NoteEditorActivity.EXTRA_NOTE_TITLE, note.title)
+            intent.putExtra(NoteEditorActivity.EXTRA_NOTE_CONTENT, note.content)
+            startActivity(intent)
+        } ?: run {
+            showToast("Note not found")
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -375,6 +398,13 @@ class NoteDetailActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (hasStoragePermission()) {
+            loadNoteDetails()
+        }
+    }
+
     @SuppressLint("SetTextI18n")
     private fun loadNoteDetails() {
         try {
@@ -385,7 +415,8 @@ class NoteDetailActivity : AppCompatActivity() {
                 titleText.text = note.title
                 dateText.text = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
                     .format(Date(note.timestamp))
-                contentText.text = note.content
+
+                markwon.setMarkdown(contentText, note.content)
 
                 if (note.imagePaths.isNotEmpty()) {
                     imageSectionTitle.visibility = View.VISIBLE
@@ -563,58 +594,6 @@ class NoteDetailActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showEditDialog() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_edit_note, null)
-        val editTitle = dialogView.findViewById<TextInputEditText>(R.id.editTitle)
-        val editContent = dialogView.findViewById<TextInputEditText>(R.id.editContent)
-        val btnUpdate = dialogView.findViewById<Button>(R.id.btnUpdate)
-
-        val titleLayout = editTitle.parent.parent as TextInputLayout
-        val contentLayout = editContent.parent.parent as TextInputLayout
-
-        titleLayout.setEndIconOnClickListener {
-            pendingEditText = editTitle
-            checkAudioPermissionAndStartSpeech()
-        }
-
-        contentLayout.setEndIconOnClickListener {
-            pendingEditText = editContent
-            checkAudioPermissionAndStartSpeech()
-        }
-
-        currentNote?.let { note ->
-            editTitle.setText(note.title)
-            editContent.setText(note.content)
-        }
-
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .setCancelable(true)
-            .create()
-
-        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-        btnUpdate.setOnClickListener {
-            val title = editTitle.text.toString().trim()
-            val content = editContent.text.toString().trim()
-
-            if (title.isEmpty() || content.isEmpty()) {
-                showToast("Please fill all fields")
-                return@setOnClickListener
-            }
-
-            currentNote?.let { note ->
-                val updatedNote = note.copy(title = title, content = content)
-                StorageHelper.updateNote(this, updatedNote)
-                loadNoteDetails()
-                dialog.dismiss()
-                showToast("Note updated")
-            }
-        }
-
-        dialog.show()
-    }
-
     private fun showAttachmentOptions() {
         val options = arrayOf("Take Photo", "Choose Image", "Choose File", "Add Link")
 
@@ -724,8 +703,8 @@ class NoteDetailActivity : AppCompatActivity() {
 
     private fun showAddLinkDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_link, null)
-        val editTitle = dialogView.findViewById<TextInputEditText>(R.id.editLinkTitle)
-        val editUrl = dialogView.findViewById<TextInputEditText>(R.id.editLinkUrl)
+        val editTitle = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.editLinkTitle)
+        val editUrl = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.editLinkUrl)
         val btnAdd = dialogView.findViewById<Button>(R.id.btnAddLink)
 
         val dialog = AlertDialog.Builder(this)
