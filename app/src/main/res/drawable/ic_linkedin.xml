@@ -1,0 +1,10 @@
+<!-- Copyright (c) 2026, Alexander Suvorov. All rights reserved. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#0077B5"
+        android:pathData="M20.5,2h-17C2.67,2 2,2.67 2,3.5v17c0,0.83 0.67,1.5 1.5,1.5h17c0.83,0 1.5,-0.67 1.5,-1.5v-17c0,-0.83 -0.67,-1.5 -1.5,-1.5zM7,19H4V9h3v10zM5.5,7.5c-0.83,0 -1.5,-0.67 -1.5,-1.5s0.67,-1.5 1.5,-1.5 1.5,0.67 1.5,1.5 -0.67,1.5 -1.5,1.5zM20,19h-3v-5.5c0,-1.38 -0.28,-2.5 -2,-2.5 -1.72,0 -2,1.12 -2,2.5V19h-3V9h3v1.5c0.44,-0.88 1.61,-1.5 3,-1.5 2.5,0 3,1.67 3,3.83V19z"/>
+</vector>

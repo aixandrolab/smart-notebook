@@ -95,4 +95,8 @@
     <string name="aixandrolab">Alexander Suvorov</string>
     <string name="smartlegionlab_site">SmartLegionLab Site</string>
     <string name="notes_0">Notes: 0</string>
+    <string name="link_title">Link Title</string>
+    <string name="url_https">URL (https://...)</string>
+    <string name="add_link">Add Link</string>
+    <string name="links">Links</string>
 </resources>

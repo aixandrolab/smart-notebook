@@ -63,6 +63,10 @@ class NoteDetailActivity : AppCompatActivity() {
     private lateinit var btnDelete: Button
     private lateinit var permissionWarning: TextView
 
+    private lateinit var linkRecyclerView: RecyclerView
+    private lateinit var linkSectionTitle: TextView
+    private var linkAdapter: LinkAdapter? = null
+
     private var noteId: String = ""
     private var currentNote: Note? = null
     private var imageAdapter: ImageAdapter? = null
@@ -114,6 +118,9 @@ class NoteDetailActivity : AppCompatActivity() {
         btnDelete = findViewById(R.id.btnDelete)
         permissionWarning = findViewById(R.id.permissionWarning)
 
+        linkRecyclerView = findViewById(R.id.linkRecyclerView)
+        linkSectionTitle = findViewById(R.id.linkSectionTitle)
+
         backButton.setOnClickListener {
             finish()
         }
@@ -151,6 +158,7 @@ class NoteDetailActivity : AppCompatActivity() {
 
         imageRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         fileRecyclerView.layoutManager = LinearLayoutManager(this)
+        linkRecyclerView.layoutManager = LinearLayoutManager(this)
     }
 
     @SuppressLint("SetTextI18n")
@@ -367,6 +375,7 @@ class NoteDetailActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun loadNoteDetails() {
         try {
             val notes = StorageHelper.loadNotes(this)
@@ -414,6 +423,24 @@ class NoteDetailActivity : AppCompatActivity() {
                     fileRecyclerView.visibility = View.GONE
                 }
 
+                if (note.links.isNotEmpty()) {
+                    linkSectionTitle.visibility = View.VISIBLE
+                    linkRecyclerView.visibility = View.VISIBLE
+                    linkAdapter = LinkAdapter(
+                        note.links,
+                        onLinkClick = { link ->
+                            openLink(link.url)
+                        },
+                        onLinkLongClick = { link ->
+                            showLinkDeleteDialog(link)
+                        }
+                    )
+                    linkRecyclerView.adapter = linkAdapter
+                } else {
+                    linkSectionTitle.visibility = View.GONE
+                    linkRecyclerView.visibility = View.GONE
+                }
+
                 isInitialized = true
             } ?: run {
                 showToast("Note not found")
@@ -424,6 +451,33 @@ class NoteDetailActivity : AppCompatActivity() {
             showToast("Error loading note: ${e.message}")
             finish()
         }
+    }
+
+    private fun openLink(url: String) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(Intent.createChooser(intent, "Open with"))
+        } catch (e: Exception) {
+            showToast("Cannot open link: ${e.message}")
+        }
+    }
+
+    private fun showLinkDeleteDialog(link: Link) {
+        AlertDialog.Builder(this)
+            .setTitle("Delete Link")
+            .setMessage("Are you sure you want to delete \"${link.title}\"?")
+            .setPositiveButton("Delete") { _, _ ->
+                currentNote?.let { note ->
+                    val updatedLinks = note.links.filter { it != link }
+                    val updatedNote = note.copy(links = updatedLinks)
+                    StorageHelper.updateNote(this, updatedNote)
+                    loadNoteDetails()
+                    showToast("Link deleted")
+                }
+            }
+            .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() }
+            .create()
+            .show()
     }
 
     private fun showImageFullScreen(imagePath: String) {
@@ -562,7 +616,7 @@ class NoteDetailActivity : AppCompatActivity() {
     }
 
     private fun showAttachmentOptions() {
-        val options = arrayOf("Take Photo", "Choose Image", "Choose File")
+        val options = arrayOf("Take Photo", "Choose Image", "Choose File", "Add Link")
 
         AlertDialog.Builder(this)
             .setTitle("Add Attachment")
@@ -590,6 +644,9 @@ class NoteDetailActivity : AppCompatActivity() {
                             showToast("Storage permission required")
                             checkStoragePermission()
                         }
+                    }
+                    3 -> {
+                        showAddLinkDialog()
                     }
                 }
             }
@@ -663,6 +720,57 @@ class NoteDetailActivity : AppCompatActivity() {
             e.printStackTrace()
             showToast("Error opening file picker: ${e.message}")
         }
+    }
+
+    private fun showAddLinkDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_add_link, null)
+        val editTitle = dialogView.findViewById<TextInputEditText>(R.id.editLinkTitle)
+        val editUrl = dialogView.findViewById<TextInputEditText>(R.id.editLinkUrl)
+        val btnAdd = dialogView.findViewById<Button>(R.id.btnAddLink)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        btnAdd.setOnClickListener {
+            val title = editTitle.text.toString().trim()
+            val url = editUrl.text.toString().trim()
+
+            if (title.isEmpty()) {
+                showToast("Please enter a title")
+                return@setOnClickListener
+            }
+
+            if (url.isEmpty()) {
+                showToast("Please enter a URL")
+                return@setOnClickListener
+            }
+
+            if (!isValidUrl(url)) {
+                showToast("Please enter a valid URL (http:// or https://)")
+                return@setOnClickListener
+            }
+
+            currentNote?.let { note ->
+                val newLink = Link(title, url)
+                val updatedLinks = note.links.toMutableList()
+                updatedLinks.add(newLink)
+                val updatedNote = note.copy(links = updatedLinks)
+                StorageHelper.updateNote(this, updatedNote)
+                loadNoteDetails()
+                dialog.dismiss()
+                showToast("Link added: $title")
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun isValidUrl(url: String): Boolean {
+        return url.startsWith("http://") || url.startsWith("https://")
     }
 
     private fun handleCameraResult() {

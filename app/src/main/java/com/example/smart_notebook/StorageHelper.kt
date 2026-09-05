@@ -103,7 +103,7 @@ object StorageHelper {
                 val title = obj.get("title")?.asString ?: ""
                 val content = obj.get("content")?.asString ?: ""
                 val timestamp = obj.get("timestamp")?.asLong ?: System.currentTimeMillis()
-                val reminderTime = obj.get("reminderTime")?.asLong
+                val reminderTime = obj.get("reminderTime")?.asLong ?: 0
 
                 val imagePaths = mutableListOf<String>()
                 val imagesArray = obj.get("imagePaths")?.asJsonArray
@@ -121,6 +121,19 @@ object StorageHelper {
                     }
                 }
 
+                val links = mutableListOf<Link>()
+                val linksArray = obj.get("links")?.asJsonArray
+                if (linksArray != null) {
+                    for (linkElement in linksArray) {
+                        val linkObj = linkElement.asJsonObject
+                        val linkTitle = linkObj.get("title")?.asString ?: ""
+                        val linkUrl = linkObj.get("url")?.asString ?: ""
+                        if (linkTitle.isNotEmpty() && linkUrl.isNotEmpty()) {
+                            links.add(Link(linkTitle, linkUrl))
+                        }
+                    }
+                }
+
                 notes.add(Note(
                     id = id,
                     title = title,
@@ -128,6 +141,7 @@ object StorageHelper {
                     timestamp = timestamp,
                     imagePaths = imagePaths,
                     filePaths = filePaths,
+                    links = links,
                     reminderTime = reminderTime
                 ))
             }
@@ -151,7 +165,11 @@ object StorageHelper {
                 obj.addProperty("title", note.title)
                 obj.addProperty("content", note.content)
                 obj.addProperty("timestamp", note.timestamp)
-                note.reminderTime?.let { obj.addProperty("reminderTime", it) }
+                note.reminderTime?.let {
+                    if (it > 0) {
+                        obj.addProperty("reminderTime", note.reminderTime)
+                    }
+                }
 
                 val imagesArray = JsonArray()
                 for (path in note.imagePaths) {
@@ -164,6 +182,15 @@ object StorageHelper {
                     filesArray.add(path)
                 }
                 obj.add("filePaths", filesArray)
+
+                val linksArray = JsonArray()
+                for (link in note.links) {
+                    val linkObj = JsonObject()
+                    linkObj.addProperty("title", link.title)
+                    linkObj.addProperty("url", link.url)
+                    linksArray.add(linkObj)
+                }
+                obj.add("links", linksArray)
 
                 jsonArray.add(obj)
             }
