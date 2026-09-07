@@ -103,25 +103,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/_2_voice_input"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginTop="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/tap_the_microphone_icon_next_to_the_input_field_nspeak_your_text_and_it_will_be_automatically_inserted"
-                android:textColor="@color/gray"
-                android:textSize="14sp"
-                android:layout_marginStart="8dp"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/_3_drag_amp_drop_sorting"
+                android:text="@string/_2_drag_amp_drop_sorting"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -134,6 +116,53 @@
                 android:textColor="@color/gray"
                 android:textSize="14sp"
                 android:layout_marginStart="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/_3_swipe_actions"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/swipe_right_to_edit"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/swipe_right_description"
+                android:textColor="@color/gray"
+                android:textSize="14sp"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/swipe_left_to_delete"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/swipe_left_description"
+                android:textColor="@color/gray"
+                android:textSize="14sp"
+                android:layout_marginStart="16dp"
                 android:layout_marginBottom="8dp" />
 
             <TextView
@@ -247,6 +276,24 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="@string/_10_audio_recording"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/audio_recording_description"
+                android:textColor="@color/gray"
+                android:textSize="14sp"
+                android:layout_marginStart="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="@string/tips"
                 android:textColor="@color/orange"
                 android:textSize="18sp"
@@ -283,7 +330,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/swipe_left_right_on_a_note_to_delete_it"
+                android:text="@string/swipe_left_to_delete_swipe_right_to_edit"
                 android:textColor="@color/gray"
                 android:textSize="14sp"
                 android:layout_marginStart="8dp"
@@ -293,6 +340,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/use_voice_input_for_faster_note_creation"
+                android:textColor="@color/gray"
+                android:textSize="14sp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/record_audio_notes_for_quick_capture"
                 android:textColor="@color/gray"
                 android:textSize="14sp"
                 android:layout_marginStart="8dp"
