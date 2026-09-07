@@ -6,6 +6,12 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -33,6 +39,8 @@ import com.google.android.material.textfield.TextInputLayout
 import java.util.Collections
 import java.util.Locale
 import androidx.core.content.edit
+import androidx.core.graphics.toColorInt
+import androidx.core.graphics.drawable.toDrawable
 
 class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -51,6 +59,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val REQUEST_SPEECH = 1000
         private const val REQUEST_AUDIO_PERMISSION = 1001
+        private const val EDIT_NOTE_REQUEST = 1002
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,7 +82,7 @@ class MainActivity : AppCompatActivity() {
 
         initViews()
         checkStoragePermission()
-        setupDragAndDrop()
+        setupSwipeAndDrag()
     }
 
     private fun initViews() {
@@ -128,11 +137,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupDragAndDrop() {
+    private fun setupSwipeAndDrag() {
         val callback = object : ItemTouchHelper.SimpleCallback(
             ItemTouchHelper.UP or ItemTouchHelper.DOWN,
             ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT
         ) {
+            private val deleteIcon: Drawable? = ContextCompat.getDrawable(
+                this@MainActivity,
+                R.drawable.ic_delete
+            )
+            private val editIcon: Drawable? = ContextCompat.getDrawable(
+                this@MainActivity,
+                R.drawable.ic_edit
+            )
+
+            private val deleteBackground = "#D32F2F".toColorInt().toDrawable()
+            private val editBackground = "#FFA000".toColorInt().toDrawable()
+
+            init {
+                deleteIcon?.setColorFilter(
+                    PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
+                )
+                editIcon?.setColorFilter(
+                    PorterDuffColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP)
+                )
+            }
+
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
@@ -162,22 +192,29 @@ class MainActivity : AppCompatActivity() {
                 val position = viewHolder.adapterPosition
                 val note = notes[position]
 
-                AlertDialog.Builder(this@MainActivity)
-                    .setTitle("Delete Note")
-                    .setMessage("Are you sure you want to delete \"${note.title}\"?")
-                    .setPositiveButton("Delete") { _, _ ->
-                        StorageHelper.deleteNote(this@MainActivity, note.id)
-                        notes.removeAt(position)
-                        adapter.notifyItemRemoved(position)
-                        checkEmptyState()
-                        updateNotesCounter()
-                        showToast("Note deleted")
+                when (direction) {
+                    ItemTouchHelper.LEFT -> {
+                        AlertDialog.Builder(this@MainActivity)
+                            .setTitle("Delete Note")
+                            .setMessage("Are you sure you want to delete \"${note.title}\"?")
+                            .setPositiveButton("Delete") { _, _ ->
+                                StorageHelper.deleteNote(this@MainActivity, note.id)
+                                notes.removeAt(position)
+                                adapter.notifyItemRemoved(position)
+                                checkEmptyState()
+                                updateNotesCounter()
+                                showToast("Note deleted")
+                            }
+                            .setNegativeButton("Cancel") { dialog, _ ->
+                                dialog.dismiss()
+                                adapter.notifyItemChanged(position)
+                            }
+                            .show()
                     }
-                    .setNegativeButton("Cancel") { dialog, _ ->
-                        dialog.dismiss()
-                        adapter.notifyItemChanged(position)
+                    ItemTouchHelper.RIGHT -> {
+                        editNote(position)
                     }
-                    .show()
+                }
             }
 
             override fun isLongPressDragEnabled(): Boolean {
@@ -190,10 +227,121 @@ class MainActivity : AppCompatActivity() {
             ): Int {
                 return ItemTouchHelper.UP or ItemTouchHelper.DOWN
             }
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                val itemView = viewHolder.itemView
+                val iconSize = 56
+                val iconMargin = 32
+
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    val background: ColorDrawable
+                    val icon: Drawable?
+                    val iconPosition: Float
+
+                    when {
+                        dX < 0 -> {
+                            background = deleteBackground
+                            icon = deleteIcon
+                            iconPosition = (itemView.right - iconSize - iconMargin).toFloat()
+
+                            background.setBounds(
+                                itemView.right + dX.toInt(),
+                                itemView.top,
+                                itemView.right,
+                                itemView.bottom
+                            )
+                            background.draw(c)
+
+                            icon?.let {
+                                val iconLeft = iconPosition.toInt()
+                                val iconTop = itemView.top + (itemView.height - iconSize) / 2
+                                it.setBounds(
+                                    iconLeft,
+                                    iconTop,
+                                    iconLeft + iconSize,
+                                    iconTop + iconSize
+                                )
+                                it.draw(c)
+                            }
+                        }
+                        dX > 0 -> {
+                            background = editBackground
+                            icon = editIcon
+                            iconPosition = itemView.left + iconMargin.toFloat()
+
+                            background.setBounds(
+                                itemView.left,
+                                itemView.top,
+                                itemView.left + dX.toInt(),
+                                itemView.bottom
+                            )
+                            background.draw(c)
+
+                            icon?.let {
+                                val iconLeft = iconPosition.toInt()
+                                val iconTop = itemView.top + (itemView.height - iconSize) / 2
+                                it.setBounds(
+                                    iconLeft,
+                                    iconTop,
+                                    iconLeft + iconSize,
+                                    iconTop + iconSize
+                                )
+                                it.draw(c)
+                            }
+                        }
+                        else -> {
+                            return
+                        }
+                    }
+                }
+
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            }
         }
 
         itemTouchHelper = ItemTouchHelper(callback)
         itemTouchHelper?.attachToRecyclerView(recyclerView)
+    }
+
+    private fun editNote(position: Int) {
+        val note = notes[position]
+        val intent = Intent(this, NoteEditorActivity::class.java).apply {
+            putExtra("note_id", note.id)
+            putExtra("note_title", note.title)
+            putExtra("note_content", note.content)
+            putExtra("is_editing", true)
+        }
+        startActivityForResult(intent, EDIT_NOTE_REQUEST)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        when (requestCode) {
+            REQUEST_SPEECH -> {
+                if (resultCode == RESULT_OK && data != null) {
+                    val results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                    if (!results.isNullOrEmpty()) {
+                        pendingEditText?.setText(results[0])
+                        pendingEditText = null
+                    }
+                }
+            }
+            EDIT_NOTE_REQUEST -> {
+                if (resultCode == RESULT_OK) {
+                    loadNotes()
+                    showToast("Note updated")
+                }
+            }
+        }
     }
 
     private fun openNoteDetail(noteId: String) {
@@ -296,18 +444,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == REQUEST_SPEECH && resultCode == RESULT_OK && data != null) {
-            val results = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            if (!results.isNullOrEmpty()) {
-                pendingEditText?.setText(results[0])
-                pendingEditText = null
-            }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         if (hasStoragePermission()) {
@@ -363,9 +499,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAddNoteDialog() {
-        val intent = Intent(this, NoteEditorActivity::class.java)
-        intent.putExtra(NoteEditorActivity.EXTRA_NOTE_TITLE, "Untitled")
-        startActivity(intent)
+        val intent = Intent(this, NoteEditorActivity::class.java).apply {
+            putExtra("note_title", "Untitled")
+            putExtra("is_editing", false)
+        }
+        startActivityForResult(intent, EDIT_NOTE_REQUEST)
     }
 
     private fun startSpeechRecognition() {
