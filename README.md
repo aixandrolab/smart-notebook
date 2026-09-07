@@ -206,7 +206,7 @@ Found a bug? Please open an issue with:
 
 ---
 
-## 📝 License
+## 📝 [License](LICENSE)
 
 © 2026 Smart Notebook – All Rights Reserved
 
