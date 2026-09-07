@@ -277,6 +277,19 @@ object StorageHelper {
         saveOrder(context, order)
     }
 
+    fun getAudioDir(context: Context): File? {
+        return try {
+            val dir = File(context.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "audio_notes")
+            if (!dir.exists()) {
+                dir.mkdirs()
+            }
+            dir
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
     fun clearData(context: Context) {
         val file = getNotesFile(context)
         file?.delete()

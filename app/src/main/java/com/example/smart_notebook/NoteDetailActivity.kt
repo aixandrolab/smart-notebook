@@ -13,6 +13,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.graphics.BitmapFactory
+import android.media.MediaPlayer
+import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -49,6 +51,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.Timer
+import java.util.TimerTask
 import androidx.core.graphics.toColorInt
 
 class NoteDetailActivity : AppCompatActivity() {
@@ -77,6 +81,19 @@ class NoteDetailActivity : AppCompatActivity() {
     private var currentPhotoPath: String? = null
     private var pendingEditText: TextInputEditText? = null
     private lateinit var markwon: Markwon
+
+    private var mediaRecorder: MediaRecorder? = null
+    private var audioFilePath: String? = null
+    private var isRecording = false
+    private var recordingTimer: Timer? = null
+    private var recordingSeconds = 0
+    private var recordingDialog: AlertDialog? = null
+
+    private var mediaPlayer: MediaPlayer? = null
+    private var currentPlayingPath: String? = null
+    private var playbackTimer: Timer? = null
+    private var playbackDialog: AlertDialog? = null
+    private var isPlaying = false
 
     companion object {
         private const val REQUEST_IMAGE_CAPTURE = 1
@@ -285,6 +302,13 @@ class NoteDetailActivity : AppCompatActivity() {
         }
     }
 
+    private fun hasAudioPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
     private fun checkStoragePermission() {
         if (!hasStoragePermission()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -329,6 +353,16 @@ class NoteDetailActivity : AppCompatActivity() {
         }
     }
 
+    private fun checkAudioPermission() {
+        if (!hasAudioPermission()) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                REQUEST_AUDIO_PERMISSION
+            )
+        }
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -351,7 +385,7 @@ class NoteDetailActivity : AppCompatActivity() {
             REQUEST_AUDIO_PERMISSION -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     showToast("Microphone ready")
-                    startSpeechRecognition()
+                    startAudioRecording()
                 } else {
                     showToast("Microphone permission denied")
                 }
@@ -405,6 +439,14 @@ class NoteDetailActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        stopRecording()
+        stopPlayback()
+        recordingDialog?.dismiss()
+        playbackDialog?.dismiss()
+    }
+
     @SuppressLint("SetTextI18n")
     private fun loadNoteDetails() {
         try {
@@ -442,7 +484,11 @@ class NoteDetailActivity : AppCompatActivity() {
                     fileAdapter = FileAdapter(
                         note.filePaths,
                         onFileClick = { filePath ->
-                            openFile(filePath)
+                            if (isAudioFile(filePath)) {
+                                playAudio(filePath)
+                            } else {
+                                openFile(filePath)
+                            }
                         },
                         onFileLongClick = { filePath ->
                             showFileDeleteDialog(filePath)
@@ -482,6 +528,342 @@ class NoteDetailActivity : AppCompatActivity() {
             showToast("Error loading note: ${e.message}")
             finish()
         }
+    }
+
+    private fun isAudioFile(filePath: String): Boolean {
+        val extension = File(filePath).extension.lowercase()
+        return when (extension) {
+            "m4a", "aac", "mp3", "wav", "3gp", "ogg", "flac", "m4b", "m4p" -> true
+            else -> false
+        }
+    }
+
+    private fun playAudio(filePath: String) {
+        try {
+            val file = File(filePath)
+            if (!file.exists()) {
+                showToast("Audio file not found")
+                return
+            }
+
+            stopPlayback()
+
+            currentPlayingPath = filePath
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(filePath)
+                prepare()
+                start()
+                this@NoteDetailActivity.isPlaying = true
+            }
+
+            showPlaybackDialog()
+
+            mediaPlayer?.setOnCompletionListener {
+                stopPlayback()
+                playbackDialog?.dismiss()
+                showToast("Playback finished")
+            }
+
+            mediaPlayer?.setOnErrorListener { _, what, extra ->
+                showToast("Playback error")
+                stopPlayback()
+                playbackDialog?.dismiss()
+                true
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast("Error playing audio: ${e.message}")
+        }
+    }
+
+    private fun showPlaybackDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_audio_playback, null)
+        val tvTimer = dialogView.findViewById<TextView>(R.id.tvPlaybackTimer)
+        val btnPlayPause = dialogView.findViewById<Button>(R.id.btnPlayPause)
+        val btnStop = dialogView.findViewById<Button>(R.id.btnStopPlayback)
+        val seekBar = dialogView.findViewById<android.widget.SeekBar>(R.id.seekBarPlayback)
+
+        playbackDialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        playbackDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        playbackDialog?.window?.setLayout(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
+        val duration = mediaPlayer?.duration ?: 0
+        seekBar.max = duration
+
+        playbackTimer = Timer(true)
+        playbackTimer?.schedule(object : TimerTask() {
+            override fun run() {
+                runOnUiThread {
+                    if (mediaPlayer?.isPlaying == true) {
+                        val currentPosition = mediaPlayer?.currentPosition ?: 0
+                        seekBar.progress = currentPosition
+
+                        val totalSeconds = currentPosition / 1000
+                        val minutes = totalSeconds / 60
+                        val seconds = totalSeconds % 60
+                        tvTimer.text = String.format("%02d:%02d", minutes, seconds)
+                    }
+                }
+            }
+        }, 0, 500)
+
+        seekBar.setOnSeekBarChangeListener(object : android.widget.SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: android.widget.SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    mediaPlayer?.seekTo(progress)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: android.widget.SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: android.widget.SeekBar?) {}
+        })
+
+        btnPlayPause.setOnClickListener {
+            if (mediaPlayer?.isPlaying == true) {
+                mediaPlayer?.pause()
+                btnPlayPause.text = "Play"
+            } else {
+                mediaPlayer?.start()
+                btnPlayPause.text = "Pause"
+            }
+        }
+
+        btnStop.setOnClickListener {
+            stopPlayback()
+            playbackDialog?.dismiss()
+            showToast("Playback stopped")
+        }
+
+        playbackDialog?.setOnDismissListener {
+            stopPlayback()
+        }
+
+        playbackDialog?.show()
+    }
+
+    private fun stopPlayback() {
+        try {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
+            isPlaying = false
+            playbackTimer?.cancel()
+            playbackTimer = null
+            currentPlayingPath = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+
+    private fun startAudioRecording() {
+        if (isRecording) {
+            showToast("Already recording")
+            return
+        }
+
+        try {
+            val audioDir = StorageHelper.getAudioDir(this)
+            if (audioDir == null) {
+                showToast("Cannot access storage")
+                return
+            }
+
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val fileName = "AUDIO_${timeStamp}.m4a"
+            val audioFile = File(audioDir, fileName)
+            audioFilePath = audioFile.absolutePath
+
+            if (!audioDir.exists()) {
+                audioDir.mkdirs()
+            }
+
+            mediaRecorder = MediaRecorder().apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioSamplingRate(44100)
+                setAudioEncodingBitRate(128000)
+                setOutputFile(audioFile.absolutePath)
+                prepare()
+                start()
+            }
+
+            isRecording = true
+            recordingSeconds = 0
+
+            showRecordingDialog()
+            startRecordingTimer()
+
+            showToast("Recording started")
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast("Error starting recording: ${e.message}")
+            cleanupRecording()
+        }
+    }
+
+    private fun showRecordingDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_audio_recording, null)
+        val tvTimer = dialogView.findViewById<TextView>(R.id.tvRecordingTimer)
+        val btnStop = dialogView.findViewById<Button>(R.id.btnStopRecording)
+        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancelRecording)
+
+        recordingDialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(false)
+            .create()
+
+        recordingDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        recordingDialog?.window?.setLayout(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+
+        val timer = Timer(true)
+        timer.schedule(object : TimerTask() {
+            override fun run() {
+                runOnUiThread {
+                    if (isRecording) {
+                        val minutes = recordingSeconds / 60
+                        val seconds = recordingSeconds % 60
+                        tvTimer.text = String.format("%02d:%02d", minutes, seconds)
+                    }
+                }
+            }
+        }, 0, 1000)
+
+        btnStop.setOnClickListener {
+            timer.cancel()
+            stopRecordingAndSave()
+        }
+
+        btnCancel.setOnClickListener {
+            timer.cancel()
+            stopRecording()
+            recordingDialog?.dismiss()
+            showToast("Recording cancelled")
+        }
+
+        recordingDialog?.setOnDismissListener {
+            timer.cancel()
+            if (isRecording) {
+                stopRecording()
+            }
+        }
+
+        recordingDialog?.show()
+    }
+
+    private fun startRecordingTimer() {
+        recordingTimer = Timer(true)
+        recordingTimer?.schedule(object : TimerTask() {
+            override fun run() {
+                if (isRecording) {
+                    recordingSeconds++
+                } else {
+                    cancel()
+                }
+            }
+        }, 0, 1000)
+    }
+
+    private fun stopRecordingAndSave() {
+        if (!isRecording) return
+
+        try {
+            mediaRecorder?.apply {
+                stop()
+                release()
+            }
+            mediaRecorder = null
+            isRecording = false
+            recordingTimer?.cancel()
+            recordingTimer = null
+
+            recordingDialog?.dismiss()
+            recordingDialog = null
+
+            audioFilePath?.let { path ->
+                val file = File(path)
+                if (file.exists() && file.length() > 0) {
+                    currentNote?.let { note ->
+                        val newFilePaths = note.filePaths.toMutableList()
+                        newFilePaths.add(path)
+                        val updatedNote = note.copy(filePaths = newFilePaths)
+                        StorageHelper.updateNote(this, updatedNote)
+                        loadNoteDetails()
+                        val minutes = recordingSeconds / 60
+                        val seconds = recordingSeconds % 60
+                        showToast("Audio saved: ${String.format("%02d:%02d", minutes, seconds)}")
+                    }
+                } else {
+                    showToast("Recording failed - file empty")
+                    file.delete()
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast("Error saving recording: ${e.message}")
+        } finally {
+            audioFilePath = null
+            recordingSeconds = 0
+        }
+    }
+
+    private fun stopRecording() {
+        if (!isRecording) return
+
+        try {
+            mediaRecorder?.apply {
+                try {
+                    stop()
+                } catch (e: IllegalStateException) {
+                }
+                release()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            mediaRecorder = null
+            isRecording = false
+            recordingTimer?.cancel()
+            recordingTimer = null
+            recordingDialog?.dismiss()
+            recordingDialog = null
+            audioFilePath = null
+            recordingSeconds = 0
+        }
+    }
+
+    private fun cleanupRecording() {
+        try {
+            mediaRecorder?.release()
+            mediaRecorder = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        isRecording = false
+        recordingTimer?.cancel()
+        recordingTimer = null
+        audioFilePath?.let { path ->
+            try {
+                File(path).delete()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        audioFilePath = null
+        recordingSeconds = 0
     }
 
     private fun openLink(url: String) {
@@ -595,7 +977,7 @@ class NoteDetailActivity : AppCompatActivity() {
     }
 
     private fun showAttachmentOptions() {
-        val options = arrayOf("Take Photo", "Choose Image", "Choose File", "Add Link")
+        val options = arrayOf("Take Photo", "Choose Image", "Choose File", "Add Link", "Record Audio")
 
         AlertDialog.Builder(this)
             .setTitle("Add Attachment")
@@ -626,6 +1008,13 @@ class NoteDetailActivity : AppCompatActivity() {
                     }
                     3 -> {
                         showAddLinkDialog()
+                    }
+                    4 -> {
+                        if (hasAudioPermission()) {
+                            startAudioRecording()
+                        } else {
+                            checkAudioPermission()
+                        }
                     }
                 }
             }
@@ -931,7 +1320,7 @@ class NoteDetailActivity : AppCompatActivity() {
                 return when {
                     mimeType.startsWith("image/") -> "jpg"
                     mimeType.startsWith("video/") -> "mp4"
-                    mimeType.startsWith("audio/") -> "mp3"
+                    mimeType.startsWith("audio/") -> "m4a"
                     mimeType == "application/pdf" -> "pdf"
                     mimeType == "application/zip" -> "zip"
                     else -> ""
@@ -1108,9 +1497,12 @@ class NoteDetailActivity : AppCompatActivity() {
             "gif" -> "image/gif"
             "bmp" -> "image/bmp"
             "webp" -> "image/webp"
+            "m4a", "aac" -> "audio/mp4"
             "mp3" -> "audio/mpeg"
             "wav" -> "audio/wav"
             "flac" -> "audio/flac"
+            "ogg" -> "audio/ogg"
+            "3gp" -> "audio/3gpp"
             "mp4" -> "video/mp4"
             "avi" -> "video/x-msvideo"
             "mkv" -> "video/x-matroska"
