@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) 2026, Alexander Suvorov. All rights reserved. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
@@ -20,7 +19,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Editor"
+            android:text="@string/editor"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -42,12 +41,12 @@
             android:id="@+id/titleEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Note Title"
+            android:hint="@string/note_title_hint"
             android:textColor="@color/white"
             android:textColorHint="@color/gray"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:inputType="textCapWords" />
+            android:inputType="text" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -259,7 +258,7 @@
             android:layout_height="36dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:text="Show Preview"
+            android:text="@string/show_preview"
             android:textColor="@color/white"
             android:textSize="14sp" />
 
@@ -274,7 +273,7 @@
             android:layout_height="36dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:text="Wrap"
+            android:text="@string/wrap"
             android:textColor="@color/white"
             android:textSize="14sp" />
 
@@ -293,7 +292,7 @@
             android:layout_weight="1"
             android:background="@color/black"
             android:gravity="top|start"
-            android:hint="Write your note in Markdown..."
+            android:hint="@string/write_note_markdown"
             android:inputType="textMultiLine"
             android:padding="16dp"
             android:textColor="@color/white"

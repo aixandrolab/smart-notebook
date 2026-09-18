@@ -125,4 +125,16 @@
     <string name="recording_failed">Recording failed - file empty</string>
     <string name="error_starting_recording">Error starting recording</string>
     <string name="error_saving_recording">Error saving recording</string>
+    <string name="editor">Editor</string>
+    <string name="note_title_hint">Note Title</string>
+    <string name="write_note_markdown">Write your note in Markdown...</string>
+    <string name="show_preview">Show Preview</string>
+    <string name="hide_preview">Hide Preview</string>
+    <string name="wrap">Wrap</string>
+    <string name="no_wrap">No Wrap</string>
+    <string name="search">Search</string>
+    <string name="search_notes">Search notes...</string>
+    <string name="clear_search">Clear search</string>
+    <string name="no_notes_found">No notes found</string>
+    <string name="found_notes">Found: %d</string>
 </resources>

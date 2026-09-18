@@ -19,14 +19,16 @@ import android.os.Environment
 import android.provider.Settings
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -35,7 +37,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import java.util.Collections
 import java.util.Locale
 import androidx.core.content.edit
@@ -49,10 +50,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fabRequestPermission: FloatingActionButton
     private lateinit var navMenu: ImageView
     private lateinit var notesCounter: TextView
+    private lateinit var searchEditText: EditText
+    private lateinit var clearSearchButton: ImageView
     private lateinit var adapter: NoteAdapter
+    private var allNotes = mutableListOf<Note>()
     private var notes = mutableListOf<Note>()
     private lateinit var prefs: android.content.SharedPreferences
     private var itemTouchHelper: ItemTouchHelper? = null
+    private var searchQuery = ""
 
     private var pendingEditText: TextInputEditText? = null
 
@@ -81,6 +86,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         initViews()
+        setupSearch()
         checkStoragePermission()
         setupSwipeAndDrag()
     }
@@ -92,6 +98,8 @@ class MainActivity : AppCompatActivity() {
         fabRequestPermission = findViewById(R.id.fabRequestPermission)
         navMenu = findViewById(R.id.navMenu)
         notesCounter = findViewById(R.id.notesCounter)
+        searchEditText = findViewById(R.id.searchEditText)
+        clearSearchButton = findViewById(R.id.clearSearchButton)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = NoteAdapter(
@@ -103,15 +111,19 @@ class MainActivity : AppCompatActivity() {
                 openNoteDetail(note.id)
             },
             onItemMove = { fromPosition, toPosition ->
-                StorageHelper.reorderNotes(this, fromPosition, toPosition)
-                val item = notes.removeAt(fromPosition)
-                notes.add(toPosition, item)
-                updateNotesCounter()
+                if (searchQuery.isEmpty()) {
+                    StorageHelper.reorderNotes(this, fromPosition, toPosition)
+                    val item = notes.removeAt(fromPosition)
+                    notes.add(toPosition, item)
+                    allNotes = notes.toMutableList()
+                    updateNotesCounter()
+                }
             },
             onItemDismiss = { position ->
                 val note = notes[position]
                 StorageHelper.deleteNote(this, note.id)
                 notes.removeAt(position)
+                allNotes.removeAll { it.id == note.id }
                 adapter.notifyItemRemoved(position)
                 checkEmptyState()
                 updateNotesCounter()
@@ -135,6 +147,42 @@ class MainActivity : AppCompatActivity() {
         navMenu.setOnClickListener { view ->
             showPopupMenu(view)
         }
+    }
+
+    private fun setupSearch() {
+        searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun afterTextChanged(s: Editable?) {
+                searchQuery = s?.toString()?.trim() ?: ""
+                clearSearchButton.visibility = if (searchQuery.isNotEmpty()) View.VISIBLE else View.GONE
+                filterNotes()
+            }
+        })
+
+        clearSearchButton.setOnClickListener {
+            searchEditText.text.clear()
+            searchQuery = ""
+            filterNotes()
+        }
+    }
+
+    private fun filterNotes() {
+        val filtered = if (searchQuery.isEmpty()) {
+            allNotes.toList()
+        } else {
+            allNotes.filter { note ->
+                note.title.contains(searchQuery, ignoreCase = true)
+            }
+        }
+
+        notes.clear()
+        notes.addAll(filtered)
+        adapter.updateNotes(notes)
+        checkEmptyState()
+        updateNotesCounter()
     }
 
     private fun setupSwipeAndDrag() {
@@ -168,6 +216,8 @@ class MainActivity : AppCompatActivity() {
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean {
+                if (searchQuery.isNotEmpty()) return false
+
                 val fromPosition = viewHolder.adapterPosition
                 val toPosition = target.adapterPosition
 
@@ -184,6 +234,7 @@ class MainActivity : AppCompatActivity() {
 
                 val order = notes.map { it.id }
                 StorageHelper.saveOrder(this@MainActivity, order)
+                allNotes = notes.toMutableList()
 
                 return true
             }
@@ -200,6 +251,7 @@ class MainActivity : AppCompatActivity() {
                             .setPositiveButton("Delete") { _, _ ->
                                 StorageHelper.deleteNote(this@MainActivity, note.id)
                                 notes.removeAt(position)
+                                allNotes.removeAll { it.id == note.id }
                                 adapter.notifyItemRemoved(position)
                                 checkEmptyState()
                                 updateNotesCounter()
@@ -218,14 +270,18 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun isLongPressDragEnabled(): Boolean {
-                return true
+                return searchQuery.isEmpty()
             }
 
             override fun getDragDirs(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
-                return ItemTouchHelper.UP or ItemTouchHelper.DOWN
+                return if (searchQuery.isEmpty()) {
+                    ItemTouchHelper.UP or ItemTouchHelper.DOWN
+                } else {
+                    0
+                }
             }
 
             override fun onChildDraw(
@@ -456,26 +512,24 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadNotes() {
         try {
-            val allNotes = StorageHelper.loadNotes(this)
+            val allLoadedNotes = StorageHelper.loadNotes(this)
             val order = StorageHelper.loadOrder(this)
 
-            notes.clear()
+            allNotes.clear()
             if (order.isNotEmpty()) {
                 val sortedNotes = order.mapNotNull { id ->
-                    allNotes.find { it.id == id }
+                    allLoadedNotes.find { it.id == id }
                 }
-                notes.addAll(sortedNotes)
-                val missingNotes = allNotes.filter { note ->
+                allNotes.addAll(sortedNotes)
+                val missingNotes = allLoadedNotes.filter { note ->
                     !order.contains(note.id)
                 }
-                notes.addAll(missingNotes)
+                allNotes.addAll(missingNotes)
             } else {
-                notes.addAll(allNotes)
+                allNotes.addAll(allLoadedNotes)
             }
 
-            adapter.updateNotes(notes)
-            checkEmptyState()
-            updateNotesCounter()
+            filterNotes()
         } catch (e: Exception) {
             showToast("Error loading notes: ${e.message}")
         }
@@ -484,7 +538,11 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun checkEmptyState() {
         if (notes.isEmpty()) {
-            emptyTextView.text = "No notes in notebook"
+            if (searchQuery.isNotEmpty()) {
+                emptyTextView.text = "No notes found"
+            } else {
+                emptyTextView.text = "No notes in notebook"
+            }
             emptyTextView.visibility = View.VISIBLE
             recyclerView.visibility = View.GONE
         } else {
@@ -495,7 +553,11 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun updateNotesCounter() {
-        notesCounter.text = "Notes: ${notes.size}"
+        if (searchQuery.isNotEmpty()) {
+            notesCounter.text = "Found: ${notes.size}"
+        } else {
+            notesCounter.text = "Notes: ${notes.size}"
+        }
     }
 
     private fun showAddNoteDialog() {
