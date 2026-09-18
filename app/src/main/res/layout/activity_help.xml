@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) 2026, Alexander Suvorov. All rights reserved. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
@@ -95,6 +94,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/tap_the_button_to_create_a_new_note_nenter_a_title_and_content_then_tap_save"
+                android:textColor="@color/gray"
+                android:textSize="14sp"
+                android:layout_marginStart="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/_2_search_notes"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/search_notes_help_description"
                 android:textColor="@color/gray"
                 android:textSize="14sp"
                 android:layout_marginStart="8dp"
@@ -349,6 +366,15 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/record_audio_notes_for_quick_capture"
+                android:textColor="@color/gray"
+                android:textSize="14sp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/use_search_to_find_notes_quickly"
                 android:textColor="@color/gray"
                 android:textSize="14sp"
                 android:layout_marginStart="8dp"
