@@ -1,4 +1,4 @@
-# 📝 Smart Notebook <sup>v1.0.4</sup>
+# 📝 Smart Notebook <sup>v1.0.5</sup>
 
 [![GitHub top language](https://img.shields.io/github/languages/top/aixandrolab/smart-notebook)](https://github.com/aixandrolab/smart-notebook)
 [![GitHub license](https://img.shields.io/github/license/aixandrolab/smart-notebook)](https://github.com/aixandrolab/smart-notebook/blob/master/LICENSE)
@@ -14,7 +14,9 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 
 ---
 
-![Smart Notebook](https://github.com/aixandrolab/smart-notebook/blob/master/data/images/main_screen.jpg)
+|                                               Main Screen                                                |                                              Note Detail                                              |
+|:--------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------:|
+| ![Smart Notebook](https://github.com/aixandrolab/smart-notebook/blob/master/data/images/main_screen.jpg) | ![Note Detail](https://github.com/aixandrolab/smart-notebook/blob/master/data/images/todo_detail.jpg) |
 
 ---
 
@@ -32,6 +34,7 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 
 ### 📝 Notes Management
 - **Create, edit, and delete notes** with Markdown support
+- **Search notes by title** – instantly filter notes as you type in the search bar
 - **Drag & Drop sorting** – long press and drag the handle (≡) to reorder
 - **Swipe to Edit** – swipe right on a note to quickly edit it (yellow background with pencil icon)
 - **Swipe to Delete** – swipe left on a note to delete it with confirmation (red background with trash icon)
@@ -86,6 +89,9 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 ### Creating a Note
 Tap **+** → Enter Title and Content → Tap **Save Note**
 
+### Searching Notes
+Type any part of the title into the **search bar** at the top of the main screen → Notes filter instantly → Tap the **✕ icon** to clear the search
+
 ### Using Markdown Editor
 - Use the **toolbar** to quickly format your text
 - Tap **"Show Preview"** to see the rendered output
@@ -130,7 +136,7 @@ Open note → Tap **Reminder** → Select Date and Time
 
 ## 📥 Download
 
-You can download the application from the [Releases](https://github.com/aixandrolab/smart-notebook/releases/tag/v1.0.4) page
+You can download the application from the [Releases](https://github.com/aixandrolab/smart-notebook/releases/tag/v1.0.5) page
 
 ---
 
