@@ -1,4 +1,4 @@
-# 📝 Smart Notebook <sup>v1.0.5</sup>
+# 📝 Smart Notebook <sup>v1.0.6</sup>
 
 [![GitHub top language](https://img.shields.io/github/languages/top/aixandrolab/smart-notebook)](https://github.com/aixandrolab/smart-notebook)
 [![GitHub license](https://img.shields.io/github/license/aixandrolab/smart-notebook)](https://github.com/aixandrolab/smart-notebook/blob/master/LICENSE)
@@ -136,7 +136,7 @@ Open note → Tap **Reminder** → Select Date and Time
 
 ## 📥 Download
 
-You can download the application from the [Releases](https://github.com/aixandrolab/smart-notebook/releases/tag/v1.0.5) page
+You can download the application from the [Releases](https://github.com/aixandrolab/smart-notebook/releases/tag/v1.0.6) page
 
 ---
 
