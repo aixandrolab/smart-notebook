@@ -141,4 +141,7 @@
     <string name="clear_search">Clear search</string>
     <string name="no_notes_found">No notes found</string>
     <string name="found_notes">Found: %d</string>
+    <string name="repository">Repository</string>
+    <string name="report_bug">Report a bug</string>
+    <string name="download_releases">Download releases</string>
 </resources>
