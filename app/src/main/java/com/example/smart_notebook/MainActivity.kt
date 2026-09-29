@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var notesCounter: TextView
     private lateinit var searchEditText: EditText
     private lateinit var clearSearchButton: ImageView
+    private lateinit var cancelSelectionButton: ImageView
     private lateinit var adapter: NoteAdapter
     private var allNotes = mutableListOf<Note>()
     private var notes = mutableListOf<Note>()
@@ -60,6 +61,10 @@ class MainActivity : AppCompatActivity() {
     private var searchQuery = ""
 
     private var pendingEditText: TextInputEditText? = null
+
+    // ---- Режим множественного выбора ----
+    private var isSelectionMode = false
+    private val selectedNoteIds = mutableSetOf<String>()
 
     companion object {
         private const val REQUEST_SPEECH = 1000
@@ -100,18 +105,25 @@ class MainActivity : AppCompatActivity() {
         notesCounter = findViewById(R.id.notesCounter)
         searchEditText = findViewById(R.id.searchEditText)
         clearSearchButton = findViewById(R.id.clearSearchButton)
+        cancelSelectionButton = findViewById(R.id.cancelSelectionButton)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = NoteAdapter(
             notes,
             onItemClick = { note ->
-                openNoteDetail(note.id)
+                if (isSelectionMode) toggleSelection(note.id)
+                else openNoteDetail(note.id)
             },
             onViewClick = { note ->
-                openNoteDetail(note.id)
+                if (isSelectionMode) toggleSelection(note.id)
+                else openNoteDetail(note.id)
+            },
+            onItemLongClick = { note ->
+                if (!isSelectionMode) enterSelectionMode(note.id)
+                true
             },
             onItemMove = { fromPosition, toPosition ->
-                if (searchQuery.isEmpty()) {
+                if (searchQuery.isEmpty() && !isSelectionMode) {
                     StorageHelper.reorderNotes(this, fromPosition, toPosition)
                     val item = notes.removeAt(fromPosition)
                     notes.add(toPosition, item)
@@ -120,19 +132,28 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             onItemDismiss = { position ->
-                val note = notes[position]
-                StorageHelper.deleteNote(this, note.id)
-                notes.removeAt(position)
-                allNotes.removeAll { it.id == note.id }
-                adapter.notifyItemRemoved(position)
-                checkEmptyState()
-                updateNotesCounter()
+                if (!isSelectionMode) {
+                    val note = notes[position]
+                    StorageHelper.deleteNote(this, note.id)
+                    notes.removeAt(position)
+                    allNotes.removeAll { it.id == note.id }
+                    adapter.notifyItemRemoved(position)
+                    checkEmptyState()
+                    updateNotesCounter()
+                }
+            },
+            isSelectionMode = { isSelectionMode },
+            selectedNoteIds = selectedNoteIds,
+            onDragStart = { holder ->
+                itemTouchHelper?.startDrag(holder)
             }
         )
         recyclerView.adapter = adapter
 
         fabAdd.setOnClickListener {
-            if (hasStoragePermission()) {
+            if (isSelectionMode) {
+                confirmDeleteSelected()
+            } else if (hasStoragePermission()) {
                 showAddNoteDialog()
             } else {
                 showToast("Please grant storage permission first")
@@ -145,9 +166,86 @@ class MainActivity : AppCompatActivity() {
         }
 
         navMenu.setOnClickListener { view ->
-            showPopupMenu(view)
+            if (!isSelectionMode) showPopupMenu(view)
         }
+
+        cancelSelectionButton.setOnClickListener { exitSelectionMode() }
     }
+
+    // ---- Режим множественного выбора ----
+
+    private fun enterSelectionMode(noteId: String) {
+        isSelectionMode = true
+        selectedNoteIds.clear()
+        selectedNoteIds.add(noteId)
+
+        cancelSelectionButton.visibility = View.VISIBLE
+        navMenu.visibility = View.GONE
+        fabAdd.setImageResource(R.drawable.ic_delete)
+        fabAdd.backgroundTintList = ContextCompat.getColorStateList(this, R.color.orange_dark)
+
+        adapter.notifyDataSetChanged()
+        updateSelectionUi()
+    }
+
+    private fun exitSelectionMode() {
+        isSelectionMode = false
+        selectedNoteIds.clear()
+
+        cancelSelectionButton.visibility = View.GONE
+        navMenu.visibility = View.VISIBLE
+        fabAdd.setImageResource(android.R.drawable.ic_input_add)
+        fabAdd.backgroundTintList = ContextCompat.getColorStateList(this, R.color.orange)
+
+        adapter.notifyDataSetChanged()
+        updateNotesCounter()
+    }
+
+    private fun toggleSelection(noteId: String) {
+        if (selectedNoteIds.contains(noteId)) {
+            selectedNoteIds.remove(noteId)
+        } else {
+            selectedNoteIds.add(noteId)
+        }
+        if (selectedNoteIds.isEmpty()) {
+            exitSelectionMode()
+            return
+        }
+        adapter.notifyDataSetChanged()
+        updateSelectionUi()
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun updateSelectionUi() {
+        notesCounter.text = "Selected: ${selectedNoteIds.size}"
+    }
+
+    private fun confirmDeleteSelected() {
+        if (selectedNoteIds.isEmpty()) {
+            exitSelectionMode()
+            return
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Delete Notes")
+            .setMessage("Delete ${selectedNoteIds.size} selected note(s)?")
+            .setPositiveButton("Delete") { _, _ -> deleteSelectedNotes() }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun deleteSelectedNotes() {
+        val ids = selectedNoteIds.toList()
+        for (id in ids) StorageHelper.deleteNote(this, id)
+        allNotes.removeAll { ids.contains(it.id) }
+        notes.removeAll { ids.contains(it.id) }
+        adapter.notifyDataSetChanged()
+        exitSelectionMode()
+        checkEmptyState()
+        updateNotesCounter()
+        showToast("${ids.size} note(s) deleted")
+    }
+
+    // ---- Поиск ----
 
     private fun setupSearch() {
         searchEditText.addTextChangedListener(object : TextWatcher {
@@ -185,6 +283,8 @@ class MainActivity : AppCompatActivity() {
         updateNotesCounter()
     }
 
+    // ---- Свайпы и перетаскивание ----
+
     private fun setupSwipeAndDrag() {
         val callback = object : ItemTouchHelper.SimpleCallback(
             ItemTouchHelper.UP or ItemTouchHelper.DOWN,
@@ -216,7 +316,7 @@ class MainActivity : AppCompatActivity() {
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean {
-                if (searchQuery.isNotEmpty()) return false
+                if (searchQuery.isNotEmpty() || isSelectionMode) return false
 
                 val fromPosition = viewHolder.adapterPosition
                 val toPosition = target.adapterPosition
@@ -240,6 +340,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                if (isSelectionMode) {
+                    adapter.notifyItemChanged(viewHolder.adapterPosition)
+                    return
+                }
+
                 val position = viewHolder.adapterPosition
                 val note = notes[position]
 
@@ -270,14 +375,14 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun isLongPressDragEnabled(): Boolean {
-                return searchQuery.isEmpty()
+                return false
             }
 
             override fun getDragDirs(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder
             ): Int {
-                return if (searchQuery.isEmpty()) {
+                return if (searchQuery.isEmpty() && !isSelectionMode) {
                     ItemTouchHelper.UP or ItemTouchHelper.DOWN
                 } else {
                     0
@@ -297,7 +402,7 @@ class MainActivity : AppCompatActivity() {
                 val iconSize = 56
                 val iconMargin = 32
 
-                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE && !isSelectionMode) {
                     val background: ColorDrawable
                     val icon: Drawable?
                     val iconPosition: Float
@@ -553,7 +658,9 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun updateNotesCounter() {
-        if (searchQuery.isNotEmpty()) {
+        if (isSelectionMode) {
+            notesCounter.text = "Selected: ${selectedNoteIds.size}"
+        } else if (searchQuery.isNotEmpty()) {
             notesCounter.text = "Found: ${notes.size}"
         } else {
             notesCounter.text = "Notes: ${notes.size}"

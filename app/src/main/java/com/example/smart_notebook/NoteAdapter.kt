@@ -16,8 +16,12 @@ class NoteAdapter(
     private var notes: List<Note>,
     private val onItemClick: (Note) -> Unit,
     private val onViewClick: (Note) -> Unit,
+    private val onItemLongClick: (Note) -> Boolean = { false },
     private val onItemMove: (Int, Int) -> Unit,
-    private val onItemDismiss: (Int) -> Unit
+    private val onItemDismiss: (Int) -> Unit,
+    private val isSelectionMode: () -> Boolean = { false },
+    private val selectedNoteIds: Set<String> = emptySet(),
+    private val onDragStart: (RecyclerView.ViewHolder) -> Unit = {}
 ) : RecyclerView.Adapter<NoteAdapter.NoteViewHolder>() {
 
     class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -28,6 +32,8 @@ class NoteAdapter(
         val fileCountText: TextView = itemView.findViewById(R.id.fileCountText)
         val imageCountIcon: ImageView = itemView.findViewById(R.id.imageCountIcon)
         val fileCountIcon: ImageView = itemView.findViewById(R.id.fileCountIcon)
+        val selectionCheck: ImageView = itemView.findViewById(R.id.selectionCheck)
+        val dragHandle: ImageView = itemView.findViewById(R.id.dragHandle)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
@@ -38,6 +44,9 @@ class NoteAdapter(
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         val note = notes[position]
+        val selectionMode = isSelectionMode()
+        val isSelected = selectedNoteIds.contains(note.id)
+
         holder.titleText.text = note.title
 
         val dateFormat = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
@@ -54,8 +63,30 @@ class NoteAdapter(
         holder.fileCountIcon.visibility = if (fileCount > 0) View.VISIBLE else View.GONE
         holder.fileCountText.visibility = if (fileCount > 0) View.VISIBLE else View.GONE
 
+        // Галочка в стиле приложения
+        if (selectionMode) {
+            holder.selectionCheck.visibility = View.VISIBLE
+            holder.selectionCheck.setImageResource(
+                if (isSelected) R.drawable.ic_check_filled
+                else R.drawable.ic_check_empty
+            )
+        } else {
+            holder.selectionCheck.visibility = View.GONE
+        }
+
+        // Обычные обработчики
         holder.itemView.setOnClickListener { onItemClick(note) }
+        holder.itemView.setOnLongClickListener { onItemLongClick(note) }
         holder.viewButton.setOnClickListener { onViewClick(note) }
+
+        holder.dragHandle.setOnLongClickListener {
+            if (!selectionMode) {
+                onDragStart(holder)
+                true
+            } else {
+                false
+            }
+        }
     }
 
     override fun getItemCount(): Int = notes.size

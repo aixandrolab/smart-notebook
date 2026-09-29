@@ -144,4 +144,5 @@
     <string name="repository">Repository</string>
     <string name="report_bug">Report a bug</string>
     <string name="download_releases">Download releases</string>
+    <string name="select_note">Select note</string>
 </resources>
