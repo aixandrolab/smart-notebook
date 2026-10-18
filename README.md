@@ -1,4 +1,4 @@
-# 📝 Smart Notebook <sup>v1.0.7</sup>
+# Smart Notebook <sup>v1.0.8</sup>
 
 [![GitHub top language](https://img.shields.io/github/languages/top/aixandrolab/smart-notebook)](https://github.com/aixandrolab/smart-notebook)
 [![GitHub license](https://img.shields.io/github/license/aixandrolab/smart-notebook)](https://github.com/aixandrolab/smart-notebook/blob/master/LICENSE)
@@ -30,16 +30,16 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 
 ---
 
-## ✨ Features
+## Features
 
-### 📝 Notes Management
+### Notes Management
 - **Create, edit, and delete notes** with Markdown support
 - **Search notes by title** – instantly filter notes as you type in the search bar
 - **Drag & Drop sorting** – long press and drag the handle (≡) to reorder
 - **Swipe to Edit** – swipe right on a note to quickly edit it (yellow background with pencil icon)
 - **Swipe to Delete** – swipe left on a note to delete it with confirmation (red background with trash icon)
 
-### ✏️ Markdown Editor
+### Markdown Editor
 - **Rich toolbar** with formatting options:
   - Headers (H1, H2, H3)
   - Text styling (Bold, Italic, Underline, Strikethrough)
@@ -51,7 +51,7 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 - **Live preview** – toggle between editor and preview modes
 - **Wrap/No wrap** – toggle text wrapping for comfortable editing
 
-### 📎 Attachments
+### Attachments
 - **Images** – capture from camera or choose from gallery
 - **Files** – attach any file type (PDF, DOC, TXT, ZIP, APK, etc.)
 - **Links** – add clickable URLs with custom titles
@@ -63,19 +63,19 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 - **Full-screen preview** – tap images to view in full screen
 - **Long press** on any attachment to delete it
 
-### ⏰ Reminders
+### Reminders
 - Set date and time reminders for any note
 - Notifications work even when app is closed
 - Notification actions: Open Note and Dismiss
 - Precise alarm timing with exact alarm permission
 
-### 💾 Storage
+### Storage
 - All data stored locally in `Documents/smart-notebook/`
 - JSON format – `notes.json` and `order.json`
 - No cloud dependency – complete privacy and offline access
 - Images and files organized in separate folders
 
-### 🎨 UI/UX
+### UI/UX
 - Dark theme with orange accents
 - Material Design components
 - Smooth animations and transitions
@@ -84,7 +84,7 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Creating a Note
 Tap **+** → Enter Title and Content → Tap **Save Note**
@@ -99,11 +99,11 @@ Type any part of the title into the **search bar** at the top of the main screen
 
 ### Adding Attachments
 Open note → Tap **Attach** → Choose from:
-- 📸 Take Photo
-- 🖼️ Choose Image from Gallery
-- 📁 Choose File
-- 🔗 Add Link
-- 🎙️ Record Audio
+- Take Photo
+- Choose Image from Gallery
+- Choose File
+- Add Link
+- Record Audio
 
 ### Playing Audio Notes
 - Tap on any audio file in the note attachments
@@ -124,7 +124,7 @@ Open note → Tap **Reminder** → Select Date and Time
 
 ---
 
-## 📱 Requirements
+## Requirements
 
 - **Android 7.0 (API 24)** or higher
 - **Google Play Services** (for speech recognition)
@@ -134,13 +134,13 @@ Open note → Tap **Reminder** → Select Date and Time
 
 ---
 
-## 📥 Download
+## Download
 
-You can download the application from the [Releases](https://github.com/aixandrolab/smart-notebook/releases/tag/v1.0.7) page
+You can download the application from the [Releases](https://github.com/aixandrolab/smart-notebook/releases/tag/v1.0.8) page
 
 ---
 
-## 📂 Storage Structure
+## Storage Structure
 
 ```
 Documents/smart-notebook/
@@ -156,7 +156,7 @@ Documents/smart-notebook/
 
 ---
 
-## 🔒 Permissions
+## Permissions
 
 | Permission          | Purpose                                          |
 |---------------------|--------------------------------------------------|
@@ -169,7 +169,7 @@ Documents/smart-notebook/
 
 ---
 
-## 🛠️ Technologies
+## Technologies
 
 - **Kotlin** – Primary language
 - **Android SDK 24+** – Compatible with older devices
@@ -183,7 +183,7 @@ Documents/smart-notebook/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Here's how you can help:
 
@@ -202,7 +202,7 @@ Contributions are welcome! Here's how you can help:
 
 ---
 
-## 🐛 Bug Reports
+## Bug Reports
 
 Found a bug? Please open an issue with:
 - Device model and Android version
@@ -212,7 +212,7 @@ Found a bug? Please open an issue with:
 
 ---
 
-## 📝 [License](LICENSE)
+## [License](LICENSE)
 
 © 2026 Smart Notebook – All Rights Reserved
 
@@ -220,7 +220,7 @@ This project is proprietary software. All rights reserved by Alexander Suvorov.
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Alexander Suvorov (Aixandrolab)**  
 [GitHub](https://github.com/aixandrolab)
