@@ -1,4 +1,4 @@
-name: Release Android APK
+name: Release Debug APK
 
 on:
   release:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build:
-    name: Build & Sign APK
+    name: Build Debug APK
     runs-on: ubuntu-latest
 
     steps:
@@ -27,34 +27,25 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Decode Keystore
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > app/release-key.jks
-
-      - name: Build Release APK
-        run: |
-          ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file=$(pwd)/app/release-key.jks \
-            -Pandroid.injected.signing.store.password=${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
-            -Pandroid.injected.signing.key.alias=${{ secrets.ANDROID_KEY_ALIAS }} \
-            -Pandroid.injected.signing.key.password=${{ secrets.ANDROID_KEY_PASSWORD }}
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
 
       - name: Rename APK
         run: |
           VERSION="${{ github.event.release.tag_name }}"
           if [ -z "$VERSION" ]; then VERSION="dev-$(date +%Y%m%d%H%M)"; fi
-          mv app/build/outputs/apk/release/app-release.apk \
-             "smart-notebook-android-${VERSION}.apk"
+          mv app/build/outputs/apk/debug/app-debug.apk \
+             "smart-notebook-android-${VERSION}-DEBUG.apk"
 
       - name: Upload APK to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: smart-notebook-android-${{ github.event.release.tag_name }}.apk
+          files: smart-notebook-android-*-DEBUG.apk
 
       - name: Upload APK as artifact
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: smart-notebook-apk
-          path: smart-notebook-android-*.apk
+          name: smart-notebook-debug-apk
+          path: smart-notebook-android-*-DEBUG.apk
