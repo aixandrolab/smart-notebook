@@ -48,4 +48,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: smart-notebook-debug-apk
-          path: smart-notebook-android-*-DEBUG.apk
+          path: smart-notebook-android-*.apk
