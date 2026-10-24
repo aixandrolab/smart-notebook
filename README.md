@@ -1,4 +1,4 @@
-# Smart Notebook <sup>v1.0.12</sup>
+# Smart Notebook <sup>v1.1.0</sup>
 
 [![GitHub top language](https://img.shields.io/github/languages/top/aixandrolab/smart-notebook)](https://github.com/aixandrolab/smart-notebook)
 [![GitHub license](https://img.shields.io/github/license/aixandrolab/smart-notebook)](https://github.com/aixandrolab/smart-notebook/blob/master/LICENSE)
@@ -20,7 +20,7 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 
 ---
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 **By using this software, you agree to the full disclaimer terms.**
 
@@ -34,10 +34,10 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 
 ### Notes Management
 - **Create, edit, and delete notes** with Markdown support
-- **Search notes by title** – instantly filter notes as you type in the search bar
-- **Drag & Drop sorting** – long press and drag the handle (≡) to reorder
-- **Swipe to Edit** – swipe right on a note to quickly edit it (yellow background with pencil icon)
-- **Swipe to Delete** – swipe left on a note to delete it with confirmation (red background with trash icon)
+- **Search notes by title** - instantly filter notes as you type in the search bar
+- **Drag & Drop sorting** - long press and drag the handle (≡) to reorder
+- **Swipe to Edit** - swipe right on a note to quickly edit it (yellow background with pencil icon)
+- **Swipe to Delete** - swipe left on a note to delete it with confirmation (red background with trash icon)
 
 ### Markdown Editor
 - **Rich toolbar** with formatting options:
@@ -48,19 +48,19 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
   - Quotes and Tables
   - Links
   - Horizontal rules
-- **Live preview** – toggle between editor and preview modes
-- **Wrap/No wrap** – toggle text wrapping for comfortable editing
+- **Live preview** - toggle between editor and preview modes
+- **Wrap/No wrap** - toggle text wrapping for comfortable editing
 
 ### Attachments
-- **Images** – capture from camera or choose from gallery
-- **Files** – attach any file type (PDF, DOC, TXT, ZIP, APK, etc.)
-- **Links** – add clickable URLs with custom titles
-- **Audio Recording** – record voice notes directly in the app
+- **Images** - capture from camera or choose from gallery
+- **Files** - attach any file type (PDF, DOC, TXT, ZIP, APK, etc.)
+- **Links** - add clickable URLs with custom titles
+- **Audio Recording** - record voice notes directly in the app
   - High-quality AAC format (.m4a)
   - Real-time timer display during recording
   - Built-in audio player with playback controls
   - Play/Pause and Seek functionality
-- **Full-screen preview** – tap images to view in full screen
+- **Full-screen preview** - tap images to view in full screen
 - **Long press** on any attachment to delete it
 
 ### Reminders
@@ -71,8 +71,8 @@ A powerful, feature-rich note-taking application for Android built with Kotlin.
 
 ### Storage
 - All data stored locally in `Documents/smart-notebook/`
-- JSON format – `notes.json` and `order.json`
-- No cloud dependency – complete privacy and offline access
+- JSON format - `notes.json` and `order.json`
+- No cloud dependency - complete privacy and offline access
 - Images and files organized in separate folders
 
 ### UI/UX
@@ -136,7 +136,7 @@ Open note → Tap **Reminder** → Select Date and Time
 
 ## Download
 
-You can download the application from the [Releases](https://github.com/aixandrolab/smart-notebook/releases/tag/v1.0.12) page
+You can download the application from the [Releases](https://github.com/aixandrolab/smart-notebook/releases/tag/v1.1.0) page
 
 ---
 
@@ -171,15 +171,15 @@ Documents/smart-notebook/
 
 ## Technologies
 
-- **Kotlin** – Primary language
-- **Android SDK 24+** – Compatible with older devices
-- **Material Design** – Modern UI components
-- **Gson** – JSON parsing and serialization
-- **RecyclerView with ItemTouchHelper** – Drag & drop and swipe gestures
-- **MediaRecorder/MediaPlayer** – Audio recording and playback
-- **SpeechRecognizer API** – Voice input
-- **Markwon** – Markdown rendering
-- **FileProvider** – Secure file sharing
+- **Kotlin** - Primary language
+- **Android SDK 24+** - Compatible with older devices
+- **Material Design** - Modern UI components
+- **Gson** - JSON parsing and serialization
+- **RecyclerView with ItemTouchHelper** - Drag & drop and swipe gestures
+- **MediaRecorder/MediaPlayer** - Audio recording and playback
+- **SpeechRecognizer API** - Voice input
+- **Markwon** - Markdown rendering
+- **FileProvider** - Secure file sharing
 
 ---
 
@@ -214,7 +214,7 @@ Found a bug? Please open an issue with:
 
 ## [License](LICENSE)
 
-© 2026 Smart Notebook – All Rights Reserved
+© 2026 Smart Notebook - All Rights Reserved
 
 This project is proprietary software. All rights reserved by Alexander Suvorov.
 
