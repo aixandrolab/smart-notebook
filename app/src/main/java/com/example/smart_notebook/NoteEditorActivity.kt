@@ -1,6 +1,7 @@
 // Copyright (c) 2026, Alexander Suvorov. All rights reserved.
 package com.example.smart_notebook
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -21,6 +22,7 @@ import io.noties.markwon.Markwon
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
 import io.noties.markwon.ext.tasklist.TaskListPlugin
 import io.noties.markwon.ext.tables.TablePlugin
+import androidx.core.view.isVisible
 
 class NoteEditorActivity : AppCompatActivity() {
 
@@ -55,6 +57,7 @@ class NoteEditorActivity : AppCompatActivity() {
     private var isEditMode = false
     private var markwon: Markwon? = null
     private var isWrapEnabled = true
+    private var isProcessingList = false
 
     companion object {
         const val EXTRA_NOTE_ID = "note_id"
@@ -122,13 +125,73 @@ class NoteEditorActivity : AppCompatActivity() {
 
         editText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (isProcessingList) return
+                if (count == 1 && before == 0 && s != null && start < s.length && s[start] == '\n') {
+                    handleNewLineInList(start)
+                }
+            }
+
             override fun afterTextChanged(s: Editable?) {
-                if (previewScrollView.visibility == View.VISIBLE) {
+                if (previewScrollView.isVisible) {
                     renderPreview(s.toString())
                 }
             }
         })
+    }
+
+    private fun handleNewLineInList(newlinePos: Int) {
+        val text = editText.text
+
+        val lineStart = findLineStart(text, newlinePos)
+        if (newlinePos < lineStart) return
+        val lineText = text.substring(lineStart, newlinePos)
+
+        val bulletRegex = Regex("^(\\s*)([-*+])\\s+(\\[[ xX]\\]\\s+)?")
+        val numberedRegex = Regex("^(\\s*)(\\d+)\\.\\s+")
+
+        val bulletMatch = bulletRegex.find(lineText)
+        val numberedMatch = numberedRegex.find(lineText)
+
+        val prefix: String?
+        val matchedPrefixLength: Int
+
+        when {
+            bulletMatch != null -> {
+                val indent = bulletMatch.groupValues[1]
+                val marker = bulletMatch.groupValues[2]
+                val checkbox = bulletMatch.groupValues[3]
+                prefix = if (checkbox.isNotEmpty()) {
+                    "$indent$marker - [ ] "
+                } else {
+                    "$indent$marker "
+                }
+                matchedPrefixLength = bulletMatch.value.length
+            }
+            numberedMatch != null -> {
+                val indent = numberedMatch.groupValues[1]
+                val number = numberedMatch.groupValues[2].toIntOrNull() ?: 1
+                prefix = "$indent${number + 1}. "
+                matchedPrefixLength = numberedMatch.value.length
+            }
+            else -> return
+        }
+
+        val contentAfterMarker = lineText.substring(matchedPrefixLength)
+        if (contentAfterMarker.isBlank()) {
+            isProcessingList = true
+            text.delete(lineStart, newlinePos + 1)
+            editText.setSelection(lineStart)
+            isProcessingList = false
+            return
+        }
+
+        isProcessingList = true
+        val insertPos = newlinePos + 1
+        text.insert(insertPos, prefix)
+        editText.setSelection(insertPos + prefix.length)
+        isProcessingList = false
     }
 
     private fun loadNoteData() {
@@ -152,9 +215,10 @@ class NoteEditorActivity : AppCompatActivity() {
         markwon?.setMarkdown(previewText, markdown)
     }
 
+    @SuppressLint("SetTextI18n")
     private fun setupListeners() {
         btnTogglePreview.setOnClickListener {
-            val isPreviewVisible = previewScrollView.visibility == View.VISIBLE
+            val isPreviewVisible = previewScrollView.isVisible
             if (isPreviewVisible) {
                 previewScrollView.visibility = View.GONE
                 btnTogglePreview.text = "Show Preview"
@@ -231,11 +295,11 @@ class NoteEditorActivity : AppCompatActivity() {
         val lineText = text.substring(lineStart, lineEnd)
 
         val previousLines = text.substring(0, lineStart).split("\n")
-        val numberedItems = previousLines.filter { it.matches(Regex("^\\d+\\. .*")) }
+        val numberedItems = previousLines.filter { it.matches(Regex("^\\s*\\d+\\. .*")) }
         val nextNumber = numberedItems.size + 1
 
-        val newLine = if (lineText.matches(Regex("^\\d+\\. .*"))) {
-            lineText.replace(Regex("^\\d+\\. "), "")
+        val newLine = if (lineText.matches(Regex("^\\s*\\d+\\. .*"))) {
+            lineText.replace(Regex("^\\s*\\d+\\. "), "")
         } else {
             "$nextNumber. $lineText"
         }
